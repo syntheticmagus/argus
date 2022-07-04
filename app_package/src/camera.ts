@@ -1,8 +1,5 @@
+import { compare } from "bcryptjs";
 import { AsyncDataConnection, AsyncPeer } from "./asyncPeer";
-
-async function compare(password: string, hash: string) {
-    return password === hash;
-}
 
 export class Camera {
     private readonly _peer: AsyncPeer;

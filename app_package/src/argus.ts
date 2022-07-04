@@ -1,12 +1,7 @@
 import { MeshBuilder } from "@babylonjs/core";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
-
-// TODO: Replace this with a real has function once I can figure out if it's possible to get 
-// node-gyp to behave on Windows. (Node is owned by GitHub, right? Which is owned by Microsoft?)
-async function hash(password: string, saltRounds: number) {
-    return password;
-}
+import { hash } from "bcryptjs";
 
 class Playground {
     public static CreateScene(engine: Engine, canvas: HTMLCanvasElement): Scene {
