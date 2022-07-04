@@ -11,10 +11,18 @@
  *     camera closes data connection
  */
 
-interface IViewerToCameraMessage {
+interface ISensorToServiceMessage {
+    peerId: string;
+}
+
+interface IServiceToViewerMessage {
+    peerIds: Array<string>
+}
+
+interface IViewerToSensorMessage {
     passwordHash: string;
 }
 
-interface ICameraToViewerMessage {
+interface ISensorToViewerMessage {
     name: string
 }
