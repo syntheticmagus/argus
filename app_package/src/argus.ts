@@ -1,8 +1,9 @@
-import { MeshBuilder } from "@babylonjs/core";
+import { MeshBuilder, PBRMaterial, Tools, VideoTexture } from "@babylonjs/core";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { hash } from "bcryptjs";
 import { Sensor } from "./sensor";
+import { Viewer } from "./viewer";
 
 class Playground {
     public static CreateScene(engine: Engine, canvas: HTMLCanvasElement): Scene {
@@ -24,6 +25,66 @@ class Playground {
         }());
 
         return scene;
+    }
+}
+
+function createSensorScene(canvas: HTMLCanvasElement, stream: MediaStream) {
+    const engine = new Engine(canvas);
+    
+    engine.runRenderLoop(() => {
+        engine.scenes.forEach((scene) => {
+            scene.render();
+        });
+    });
+    window.addEventListener("resize", () => {
+        engine.resize();
+    });
+
+    {
+        const scene = new Scene(engine);
+
+        const ground = MeshBuilder.CreateGround("ground", { width: 1, height: 1, subdivisions: 2 }, scene);
+        const groundMat = new PBRMaterial("groundMat", scene);
+        groundMat.unlit = true;
+        ground.material = groundMat;
+        VideoTexture.CreateFromStreamAsync(scene, stream, {}).then((texture) => {
+            groundMat.albedoTexture = texture;
+        });
+
+        scene.createDefaultCameraOrLight(true, true, true);
+    }
+}
+
+function createViewerScene(canvas: HTMLCanvasElement, viewer: Viewer) {
+    const engine = new Engine(canvas);
+    
+    engine.runRenderLoop(() => {
+        engine.scenes.forEach((scene) => {
+            scene.render();
+        });
+    });
+    window.addEventListener("resize", () => {
+        engine.resize();
+    });
+
+    {
+        const scene = new Scene(engine);
+
+        const ground = MeshBuilder.CreateGround("ground", { width: 1, height: 1, subdivisions: 2 }, scene);
+        const groundMat = new PBRMaterial("groundMat", scene);
+        groundMat.unlit = true;
+        ground.material = groundMat;
+
+        viewer.onMediaConnectionReceivedObservable.add((connection) => {
+            connection.answer();
+            connection.onStreamObservable.add((stream) => {
+                VideoTexture.CreateFromStreamAsync(scene, stream, {}).then((texture) => {
+                    groundMat.albedoTexture = texture;
+                });
+            });
+        });
+
+        scene.createDefaultCameraOrLight(true, true, true);
     }
 }
 
@@ -57,6 +118,7 @@ export async function hashPasswordAsync(site: string, password: string): Promise
 }
 
 export interface SensorExperienceParams {
+    canvas: HTMLCanvasElement,
     site: string,
     name: string,
     password: string,
@@ -65,14 +127,17 @@ export interface SensorExperienceParams {
 
 export async function initializeSensorExperienceAsync(params: SensorExperienceParams) {
     const sensor = await Sensor.CreateAsync(params.site, params.name, params.password, params.liveServiceUrl);
+    createSensorScene(params.canvas, sensor.stream);
 }
 
 export interface ViewerExperienceParams {
+    canvas: HTMLCanvasElement,
     site: string,
     password: string,
     liveServiceUrl: string
 }
 
 export async function initializeViewerExperienceAsync(params: ViewerExperienceParams) {
-
+    const viewer = await Viewer.CreateAsync(params.site, params. password, params.liveServiceUrl);
+    createViewerScene(params.canvas, viewer);
 }

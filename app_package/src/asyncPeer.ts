@@ -12,7 +12,7 @@ function workaroundChromeRemoteAudioStreamBug(stream: MediaStream) {
 
 export class AsyncMediaConnection {
     private _connection: MediaConnection;
-
+    
     public readonly onStreamObservable: Observable<MediaStream>;
     public readonly onTerminatedObservable: Observable<void>;
 
@@ -36,6 +36,10 @@ export class AsyncMediaConnection {
             console.error(error);
             this.onTerminatedObservable.notifyObservers();
         });
+    }
+
+    public answer(stream?: MediaStream) {
+        this._connection.answer(stream);
     }
 
     public dispose() {

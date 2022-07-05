@@ -12,9 +12,9 @@ export class Viewer {
     private readonly _liveServiceUrl: string;
     private readonly _idToSensor: Map<string, AsyncMediaConnection>;
 
-    private static readonly NEW_SENSORS_HEARTBEAT_INTERVAL: number = 10 * 1000;
+    private static readonly NEW_SENSORS_HEARTBEAT_INTERVAL: number = 20 * 1000;
 
-    public onMediaConnectionEstablishedObservable: Observable<AsyncMediaConnection>;
+    public onMediaConnectionReceivedObservable: Observable<AsyncMediaConnection>;
     public onMediaConnectionClosedObservable: Observable<AsyncMediaConnection>;
 
     private constructor (site: string, passwordHash: string, peer: AsyncPeer, liveServiceUrl: string) {
@@ -27,7 +27,7 @@ export class Viewer {
 
         this._idToSensor = new Map<string, AsyncMediaConnection>;
 
-        this.onMediaConnectionEstablishedObservable = new Observable<AsyncMediaConnection>();
+        this.onMediaConnectionReceivedObservable = new Observable<AsyncMediaConnection>();
         this.onMediaConnectionClosedObservable = new Observable<AsyncMediaConnection>();
         
         this._connectToSensorsAsync();
@@ -64,6 +64,7 @@ export class Viewer {
         let dataTerminationObserver: Nullable<Observer<void>>;
         return new Promise<void>((resolve, reject) => {
             mediaConnectionObserver = this._peer.onMediaConnectionObservable.add((mediaConnection) => {
+                console.log("Got a media connection!");
                 if (mediaConnection.peerId === id) {
                     this._peer.onMediaConnectionObservable.remove(mediaConnectionObserver);
                     dataConnection.onTerminatedObservable.remove(dataTerminationObserver);
@@ -75,7 +76,8 @@ export class Viewer {
                         this.onMediaConnectionClosedObservable.notifyObservers(mediaConnection);
                     });
     
-                    this.onMediaConnectionEstablishedObservable.notifyObservers(mediaConnection);
+                    dataConnection.dispose();
+                    this.onMediaConnectionReceivedObservable.notifyObservers(mediaConnection);
 
                     resolve();
                 }

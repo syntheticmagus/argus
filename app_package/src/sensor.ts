@@ -8,18 +8,20 @@ export class Sensor {
     private readonly _site: string;
     private readonly _name: string;
     private readonly _password: string;
-    private readonly _stream: MediaStream;
     private readonly _liveServiceUrl: string;
+    private readonly _wakeLock: any;
+
+    public readonly stream: MediaStream;
 
     private static readonly REGISTER_HEARTBEAT_INTERVAL: number = 30 * 1000;
 
-    private constructor (site: string, name: string, password: string, peer: AsyncPeer, stream: MediaStream, liveServiceUrl: string) {
+    private constructor (site: string, name: string, password: string, peer: AsyncPeer, liveServiceUrl: string, wakeLock: any, stream: MediaStream) {
         this._disposed = false;
         this._peer = peer;
         this._site = site;
         this._name = name;
         this._password = password;
-        this._stream = stream;
+        this.stream = stream;
         this._liveServiceUrl = liveServiceUrl;
 
         this._peer.onDataConnectionObservable.add((connection) => {
@@ -58,7 +60,7 @@ export class Sensor {
                         name: this._name
                     };
                     connection.send(JSON.stringify(response));
-                    this._peer.createMediaConnection(connection.peerId, this._stream);
+                    this._peer.createMediaConnection(connection.peerId, this.stream);
                 } else {
                     connection.dispose();
                 }
@@ -66,17 +68,26 @@ export class Sensor {
         });
     }
 
-    private dispose(): void {
+    public dispose(): void {
         this._disposed = true;
+        this._wakeLock.release();
         this._peer.dispose();
-        this._stream.getTracks().forEach((track) => {
+        this.stream.getTracks().forEach((track) => {
             track.stop();
         });
     }
 
     public static async CreateAsync(site: string, name: string, password: string, liveServiceUrl: string): Promise<Sensor> {
-        const videoStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        let wakeLock: any = { release: () => {} };
+        // Quick and dirty workaround for typescript type complaining about WakeLock
+        let nav: any = navigator;
+        if (nav.wakeLock) {
+            wakeLock = await nav.wakeLock.request("screen");
+        }
+
+        const videoStream = await nav.mediaDevices.getUserMedia({ audio: false, video: true });
+
         const peer = await AsyncPeer.CreateAsync();
-        return new Sensor(site, name, password, peer, videoStream, liveServiceUrl);
+        return new Sensor(site, name, password, peer, liveServiceUrl, wakeLock, videoStream);
     }
 }
