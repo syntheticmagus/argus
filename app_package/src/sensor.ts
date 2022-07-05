@@ -85,7 +85,10 @@ export class Sensor {
             wakeLock = await nav.wakeLock.request("screen");
         }
 
-        const videoStream = await nav.mediaDevices.getUserMedia({ audio: false, video: true });
+        const videoStream = await nav.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: "environment" },
+        });
 
         const peer = await AsyncPeer.CreateAsync();
         return new Sensor(site, name, password, peer, liveServiceUrl, wakeLock, videoStream);
