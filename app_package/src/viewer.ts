@@ -35,12 +35,19 @@ export class Viewer {
 
     private async _connectToSensorsAsync(): Promise<void> {
         while (!this._disposed) {
-            const response = await fetch(`${this._liveServiceUrl}/viewer/${this._site}`, {
-                method: "GET"
+            const viewerToServiceMessage: IViewerToServiceMessage = {
+                site: this._site
+            };
+            const response = await fetch(`${this._liveServiceUrl}/viewer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(viewerToServiceMessage)
             });
-            const message = await response.json() as IServiceToViewerMessage;
+            const serviceToViewerMessage = await response.json() as IServiceToViewerMessage;
 
-            message.peerIds.forEach((id) => {
+            serviceToViewerMessage.peerIds.forEach((id) => {
                 if (!this._idToSensor.has(id)) {
                     this._connectToSensorAsync(id);
                 }
@@ -95,6 +102,6 @@ export class Viewer {
     public static async CreateAsync(site: string, password: string, liveServiceUrl: string): Promise<Viewer> {
         const passwordHash = await hash(password, 8);
         const peer = await AsyncPeer.CreateAsync();
-        return new Viewer(site, password, peer, liveServiceUrl);
+        return new Viewer(site, passwordHash, peer, liveServiceUrl);
     }
 }

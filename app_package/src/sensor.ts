@@ -32,10 +32,11 @@ export class Sensor {
     private async _registerWithLiveServiceAsync(): Promise<void> {
         while (!this._disposed) {
             const message: ISensorToServiceMessage = {
+                site: this._site,
                 peerId: this._peer.id
             };
 
-            await fetch(`${this._liveServiceUrl}/sensor/${this._site}`, {
+            await fetch(`${this._liveServiceUrl}/sensor`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

@@ -1,4 +1,4 @@
-import { initializeBabylonApp } from "app_package";
+import { initializeBabylonApp, initializeSensorExperienceAsync } from "app_package";
 
 /**
  * Site flow:
@@ -31,6 +31,83 @@ title.innerText = "Babylon.js NPM Package Template";
 title.style.fontSize = "32pt";
 title.style.textAlign = "center";
 document.body.appendChild(title);
+
+const inputSection = document.createElement("div");
+document.body.appendChild(inputSection);
+{
+    inputSection.appendChild(document.createElement("hr"));
+    const sensorHeader = document.createElement("h1");
+    sensorHeader.textContent = "Sensor";
+    inputSection.appendChild(sensorHeader);
+
+    const siteLabel = document.createElement("label");
+    siteLabel.textContent = "Site: ";
+    inputSection.appendChild(siteLabel);
+    const siteInput = document.createElement("input");
+    siteInput.setAttribute("type", "text");
+    inputSection.appendChild(siteInput);
+    inputSection.appendChild(document.createElement("br"));
+
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Name: ";
+    inputSection.appendChild(nameLabel);
+    const nameInput = document.createElement("input");
+    nameInput.setAttribute("type", "text");
+    inputSection.appendChild(nameInput);
+    inputSection.appendChild(document.createElement("br"));
+
+    const passwordLabel = document.createElement("label");
+    passwordLabel.textContent = "Password: ";
+    inputSection.appendChild(passwordLabel);
+    const passwordInput = document.createElement("input");
+    passwordInput.setAttribute("type", "text");
+    inputSection.appendChild(passwordInput);
+    inputSection.appendChild(document.createElement("br"));
+
+    const submitButton = document.createElement("button");
+    submitButton.onclick = () => {
+        initializeSensorExperienceAsync({
+            site: siteInput.value,
+            name: nameInput.value,
+            password: passwordInput.value,
+            liveServiceUrl: "https://argus-registry.herokuapp.com"
+        });
+    };
+    submitButton.style.width = "100px";
+    submitButton.style.height = "30px";
+    inputSection.appendChild(submitButton);
+    inputSection.appendChild(document.createElement("hr"));
+}
+{
+    const viewerHeader = document.createElement("h1");
+    viewerHeader.textContent = "Viewer";
+    inputSection.appendChild(viewerHeader);
+
+    const siteLabel = document.createElement("label");
+    siteLabel.textContent = "Site: ";
+    inputSection.appendChild(siteLabel);
+    const siteInput = document.createElement("input");
+    siteInput.setAttribute("type", "text");
+    inputSection.appendChild(siteInput);
+    inputSection.appendChild(document.createElement("br"));
+
+    const passwordLabel = document.createElement("label");
+    passwordLabel.textContent = "Password: ";
+    inputSection.appendChild(passwordLabel);
+    const passwordInput = document.createElement("input");
+    passwordInput.setAttribute("type", "text");
+    inputSection.appendChild(passwordInput);
+    inputSection.appendChild(document.createElement("br"));
+    const submitButton = document.createElement("button");
+
+    submitButton.onclick = () => {
+        console.log(`Site: ${siteInput.value} || Password: ${passwordInput.value}`)
+    };
+    submitButton.style.width = "100px";
+    submitButton.style.height = "30px";
+    inputSection.appendChild(submitButton);
+    inputSection.appendChild(document.createElement("hr"));
+}
 
 const div = document.createElement("div");
 div.style.width = "60%";

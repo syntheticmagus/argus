@@ -12,7 +12,12 @@
  */
 
 interface ISensorToServiceMessage {
+    site: string;
     peerId: string;
+}
+
+interface IViewerToServiceMessage {
+    site: string;
 }
 
 interface IServiceToViewerMessage {

@@ -2,6 +2,7 @@ import { MeshBuilder } from "@babylonjs/core";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { hash } from "bcryptjs";
+import { Sensor } from "./sensor";
 
 class Playground {
     public static CreateScene(engine: Engine, canvas: HTMLCanvasElement): Scene {
@@ -55,20 +56,20 @@ export async function hashPasswordAsync(site: string, password: string): Promise
     return await hash(site + password, SALT_ROUNDS);
 }
 
-export interface CameraExperienceParams {
+export interface SensorExperienceParams {
     site: string,
     name: string,
-    passwordHash: string,
+    password: string,
     liveServiceUrl: string
 }
 
-export async function initializeCameraExperienceAsync(params: CameraExperienceParams) {
-    
+export async function initializeSensorExperienceAsync(params: SensorExperienceParams) {
+    const sensor = await Sensor.CreateAsync(params.site, params.name, params.password, params.liveServiceUrl);
 }
 
 export interface ViewerExperienceParams {
     site: string,
-    passwordHash: string,
+    password: string,
     liveServiceUrl: string
 }
 
