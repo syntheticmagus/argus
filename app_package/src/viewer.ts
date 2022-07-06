@@ -2,7 +2,13 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { Tools } from "@babylonjs/core/Misc/tools";
 import { Nullable } from "@babylonjs/core/types";
 import { hash } from "bcryptjs";
-import { AsyncMediaConnection, AsyncPeer } from "./asyncPeer";
+import { AsyncDataConnection, AsyncMediaConnection, AsyncPeer } from "./asyncPeer";
+
+export interface ISensorConnection {
+    name: string;
+    dataConnection: AsyncDataConnection;
+    mediaConnection: AsyncMediaConnection;
+}
 
 export class Viewer {
     private _disposed: boolean;
@@ -10,12 +16,12 @@ export class Viewer {
     private readonly _site: string;
     private readonly _passwordHash: string;
     private readonly _liveServiceUrl: string;
-    private readonly _idToSensor: Map<string, AsyncMediaConnection>;
+    private readonly _idToSensor: Map<string, ISensorConnection>;
 
     private static readonly NEW_SENSORS_HEARTBEAT_INTERVAL: number = 20 * 1000;
 
-    public onMediaConnectionReceivedObservable: Observable<AsyncMediaConnection>;
-    public onMediaConnectionClosedObservable: Observable<AsyncMediaConnection>;
+    public onSensorConnectedObservable: Observable<ISensorConnection>;
+    public onSensorDisconnectedObservable: Observable<ISensorConnection>;
 
     private constructor (site: string, passwordHash: string, peer: AsyncPeer, liveServiceUrl: string) {
         this._disposed = false;
@@ -25,10 +31,10 @@ export class Viewer {
         this._passwordHash = passwordHash;
         this._liveServiceUrl = liveServiceUrl;
 
-        this._idToSensor = new Map<string, AsyncMediaConnection>;
+        this._idToSensor = new Map<string, ISensorConnection>;
 
-        this.onMediaConnectionReceivedObservable = new Observable<AsyncMediaConnection>();
-        this.onMediaConnectionClosedObservable = new Observable<AsyncMediaConnection>();
+        this.onSensorConnectedObservable = new Observable<ISensorConnection>();
+        this.onSensorDisconnectedObservable = new Observable<ISensorConnection>();
         
         this._connectToSensorsAsync();
     }
@@ -57,29 +63,32 @@ export class Viewer {
         }
     }
 
-    private async _connectToSensorAsync(id: string): Promise<void> {
+    private async _connectToSensorAsync(id: string): Promise<ISensorConnection> {
         const dataConnection = await this._peer.createDataConnectionAsync(id);
+
+        const namePromise = new Promise<string>((resolve) => {
+            dataConnection.onDataObservable.addOnce((data) => {
+                const message: ISensorToViewerMessage = JSON.parse(data);
+                resolve(message.name);
+            });
+        });
 
         let mediaConnectionObserver: Nullable<Observer<AsyncMediaConnection>>;
         let dataTerminationObserver: Nullable<Observer<void>>;
-        return new Promise<void>((resolve, reject) => {
+        const mediaConnectionPromise = new Promise<AsyncMediaConnection>((resolve, reject) => {
             mediaConnectionObserver = this._peer.onMediaConnectionObservable.add((mediaConnection) => {
-                console.log("Got a media connection!");
                 if (mediaConnection.peerId === id) {
                     this._peer.onMediaConnectionObservable.remove(mediaConnectionObserver);
                     dataConnection.onTerminatedObservable.remove(dataTerminationObserver);
-
-                    this._idToSensor.set(id, mediaConnection);
     
                     mediaConnection.onTerminatedObservable.add(() => {
+                        this.onSensorDisconnectedObservable.notifyObservers(this._idToSensor.get(id)!);
                         this._idToSensor.delete(id);
-                        this.onMediaConnectionClosedObservable.notifyObservers(mediaConnection);
                     });
-    
-                    dataConnection.dispose();
-                    this.onMediaConnectionReceivedObservable.notifyObservers(mediaConnection);
 
-                    resolve();
+                    mediaConnection.answer();
+
+                    resolve(mediaConnection);
                 }
             });
 
@@ -94,6 +103,18 @@ export class Viewer {
             };
             dataConnection.send(JSON.stringify(message));
         });
+
+        const name = await namePromise;
+        const mediaConnection = await mediaConnectionPromise;
+
+        const sensor = {
+            name: name,
+            dataConnection: dataConnection,
+            mediaConnection: mediaConnection
+        };
+        this._idToSensor.set(id, sensor);
+        this.onSensorConnectedObservable.notifyObservers(sensor);
+        return sensor;
     }
 
     public dispose(): void {

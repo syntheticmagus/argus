@@ -20,6 +20,10 @@ export class AsyncMediaConnection {
         return this._connection.peer;
     }
 
+    public get remoteStream(): MediaStream {
+        return this._connection.remoteStream;
+    }
+
     public constructor (connection: MediaConnection) {
         this._connection = connection;
 
