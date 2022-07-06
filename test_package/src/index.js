@@ -26,29 +26,20 @@ document.body.style.height = "100%";
 document.body.style.margin = "0";
 document.body.style.padding = "0";
 
-const title = document.createElement("p");
-title.innerText = "Babylon.js NPM Package Template";
-title.style.fontSize = "32pt";
-title.style.textAlign = "center";
-document.body.appendChild(title);
-
-const div = document.createElement("div");
-div.style.width = "60%";
-div.style.margin = "0 auto";
-div.style.aspectRatio = "16 / 9";
-document.body.appendChild(div);
-
 const canvas = document.createElement("canvas");
 canvas.id = "renderCanvas";
 canvas.style.width = "100%";
 canvas.style.height = "100%";
-canvas.style.display = "block";
-div.appendChild(canvas);
+canvas.style.display = "none";
+canvas.style.position = "fixed";
+document.body.appendChild(canvas);
 
 const inputSection = document.createElement("div");
+inputSection.style.textAlign = "center";
+
+inputSection.appendChild(document.createElement("hr"));
 document.body.appendChild(inputSection);
 {
-    inputSection.appendChild(document.createElement("hr"));
     const sensorHeader = document.createElement("h1");
     sensorHeader.textContent = "Sensor";
     inputSection.appendChild(sensorHeader);
@@ -60,6 +51,7 @@ document.body.appendChild(inputSection);
     siteInput.setAttribute("type", "text");
     inputSection.appendChild(siteInput);
     inputSection.appendChild(document.createElement("br"));
+    inputSection.appendChild(document.createElement("br"));
 
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Name: ";
@@ -68,6 +60,7 @@ document.body.appendChild(inputSection);
     nameInput.setAttribute("type", "text");
     inputSection.appendChild(nameInput);
     inputSection.appendChild(document.createElement("br"));
+    inputSection.appendChild(document.createElement("br"));
 
     const passwordLabel = document.createElement("label");
     passwordLabel.textContent = "Password: ";
@@ -75,6 +68,7 @@ document.body.appendChild(inputSection);
     const passwordInput = document.createElement("input");
     passwordInput.setAttribute("type", "text");
     inputSection.appendChild(passwordInput);
+    inputSection.appendChild(document.createElement("br"));
     inputSection.appendChild(document.createElement("br"));
 
     const submitButton = document.createElement("button");
@@ -86,12 +80,14 @@ document.body.appendChild(inputSection);
             password: passwordInput.value,
             liveServiceUrl: "https://argus-registry.herokuapp.com"
         });
+
+        inputSection.style.display = "none";
+        canvas.style.display = "block";
     };
-    submitButton.style.width = "100px";
-    submitButton.style.height = "30px";
+    submitButton.innerHTML = "Submit";
     inputSection.appendChild(submitButton);
-    inputSection.appendChild(document.createElement("hr"));
 }
+inputSection.appendChild(document.createElement("hr"));
 {
     const viewerHeader = document.createElement("h1");
     viewerHeader.textContent = "Viewer";
@@ -104,6 +100,7 @@ document.body.appendChild(inputSection);
     siteInput.setAttribute("type", "text");
     inputSection.appendChild(siteInput);
     inputSection.appendChild(document.createElement("br"));
+    inputSection.appendChild(document.createElement("br"));
 
     const passwordLabel = document.createElement("label");
     passwordLabel.textContent = "Password: ";
@@ -112,19 +109,21 @@ document.body.appendChild(inputSection);
     passwordInput.setAttribute("type", "text");
     inputSection.appendChild(passwordInput);
     inputSection.appendChild(document.createElement("br"));
+    inputSection.appendChild(document.createElement("br"));
     const submitButton = document.createElement("button");
 
     submitButton.onclick = () => {
-        console.log(`Site: ${siteInput.value} || Password: ${passwordInput.value}`)
         initializeViewerExperienceAsync({
             canvas: canvas,
             site: siteInput.value,
             password: passwordInput.value,
             liveServiceUrl: "https://argus-registry.herokuapp.com"
-        })
+        });
+
+        inputSection.style.display = "none";
+        canvas.style.display = "block";
     };
-    submitButton.style.width = "100px";
-    submitButton.style.height = "30px";
+    submitButton.innerHTML = "Submit";
     inputSection.appendChild(submitButton);
-    inputSection.appendChild(document.createElement("hr"));
 }
+inputSection.appendChild(document.createElement("hr"));
